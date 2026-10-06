@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lancar Baca - Belajar Suku Kata Konsonan Mati</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka & Quicksand for playful child-friendly lowercase typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti Library for Gamification Celebration -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        quicksand: ['Quicksand', 'sans-serif'],
+                    },
+                    colors: {
+                        syllable1: {
+                            bg: '#2563eb', // Blue-600
+                            light: '#dbeafe',
+                            border: '#1d4ed8'
+                        },
+                        syllable2: {
+                            bg: '#ea580c', // Orange-600
+                            light: '#ffedd5',
+                            border: '#c2410c'
+                        },
+                        accent: {
+                            yellow: '#f59e0b',
+                            green: '#10b981',
+                            purple: '#8b5cf6',
+                            pink: '#ec4899',
+                            teal: '#0d9488'
+                        }
+                    },
+                    animation: {
+                        'bounce-short': 'bounceShort 0.5s ease-in-out',
+                        'pulse-glow': 'pulseGlow 1.2s infinite alternate',
+                        'wiggle': 'wiggle 0.3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        bounceShort: {
+                            '0%, 100%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.12)' },
+                        },
+                        pulseGlow: {
+                            '0%': { boxShadow: '0 0 10px rgba(37, 99, 235, 0.4)' },
+                            '100%': { boxShadow: '0 0 25px rgba(234, 88, 12, 0.8)' }
+                        },
+                        wiggle: {
+                            '0%, 100%': { transform: 'rotate(-3deg)' },
+                            '50%': { transform: 'rotate(3deg)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Fredoka', 'Quicksand', sans-serif;
+            background-color: #fefce8;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        /* Enforce strict lowercase display for reading consistency */
+        .lowercase-text {
+            text-transform: lowercase !important;
+        }
+
+        /* Interactive highlight effect during Speech Synthesis */
+        .syllable-active {
+            transform: scale(1.15) !important;
+            box-shadow: 0 0 20px 5px rgba(251, 191, 36, 0.9) !important;
+            z-index: 20;
+        }
+
+        /* Press and hold effect for coda training */
+        .holding-coda {
+            animation: pulseGlow 0.3s infinite alternate;
+            transform: scale(1.08);
+            background-color: #f59e0b !important;
+            color: #ffffff !important;
+        }
+
+        /* Custom scrollbar for horizontal category pills */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-800 antialiased bg-amber-50 selection:bg-amber-200">
+
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b-4 border-amber-300 px-4 py-3 shadow-sm">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-xl shadow-md">
+                    🔤
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold text-slate-800 leading-none">lancar baca</h1>
+                    <p class="text-xs font-semibold text-amber-600">pola suku kata & konsonan mati</p>
+                </div>
+            </div>
+
+            <!-- Bintang & Progress -->
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-1.5 bg-amber-100 border-2 border-amber-400 px-3 py-1.5 rounded-full shadow-inner">
+                    <span class="text-2xl animate-bounce">⭐</span>
+                    <span id="star-count" class="text-xl font-bold text-amber-800">0</span>
+                </div>
+                <button id="btn-sound-toggle" onclick="toggleAudio()" class="w-10 h-10 rounded-full bg-slate-100 border-2 border-slate-300 flex items-center justify-center text-xl hover:bg-slate-200 transition">
+                    🔊
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col gap-4">
+
+        <!-- MENU NAVIGATION PORTAL TABS (3 POLA + KUIS + TAHAN BUNYI) -->
+        <nav class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-2.5">
+            <button onclick="switchPortal('kv-kvk')" id="tab-kv-kvk" class="nav-tab py-2.5 px-2 rounded-2xl font-bold text-xs sm:text-sm border-b-4 transition-all flex flex-col items-center justify-center gap-1 bg-blue-600 text-white border-blue-800 shadow-md">
+                <span class="text-base">🚪 1. kv-kvk</span>
+                <span class="text-[11px] opacity-90 font-normal">ru - mah</span>
+            </button>
+            <button onclick="switchPortal('kvk-kv')" id="tab-kvk-kv" class="nav-tab py-2.5 px-2 rounded-2xl font-bold text-xs sm:text-sm border-b-4 transition-all flex flex-col items-center justify-center gap-1 bg-slate-200 text-slate-700 border-slate-300 hover:bg-slate-300">
+                <span class="text-base">🚪 2. kvk-kv</span>
+                <span class="text-[11px] opacity-80 font-normal">lam - pu</span>
+            </button>
+            <button onclick="switchPortal('v-kvk')" id="tab-v-kvk" class="nav-tab py-2.5 px-2 rounded-2xl font-bold text-xs sm:text-sm border-b-4 transition-all flex flex-col items-center justify-center gap-1 bg-slate-200 text-slate-700 border-slate-300 hover:bg-slate-300">
+                <span class="text-base">🚪 3. v-kvk</span>
+                <span class="text-[11px] opacity-80 font-normal">a - sap</span>
+            </button>
+            <button onclick="switchPortal('kuis')" id="tab-kuis" class="nav-tab py-2.5 px-2 rounded-2xl font-bold text-xs sm:text-sm border-b-4 transition-all flex flex-col items-center justify-center gap-1 bg-slate-200 text-slate-700 border-slate-300 hover:bg-slate-300">
+                <span class="text-base">🎯 kuis</span>
+                <span class="text-[11px] opacity-80 font-normal">tebak suara</span>
+            </button>
+            <button onclick="switchPortal('tahan')" id="tab-tahan" class="nav-tab py-2.5 px-2 rounded-2xl font-bold text-xs sm:text-sm border-b-4 transition-all flex flex-col items-center justify-center gap-1 bg-slate-200 text-slate-700 border-slate-300 hover:bg-slate-300 col-span-2 sm:col-span-1">
+                <span class="text-base">⏱️️ tahan</span>
+                <span class="text-[11px] opacity-80 font-normal">bunyi mati</span>
+            </button>
+        </nav>
+
+        <section id="view-learning" class="bg-white rounded-3xl p-5 sm:p-6 shadow-xl border-4 border-amber-200 flex flex-col gap-5">
+            
+            <!-- Category Filter Pills -->
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span id="category-filter-label" class="text-xs font-bold uppercase tracking-wider text-slate-400">Pilih Akhiran/Tengah:</span>
+                    <span id="word-count-badge" class="text-xs font-bold text-amber-600 bg-amber-100 px-2.5 py-0.5 rounded-full">0 kata</span>
+                </div>
+                <div id="category-pills" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                    <!-- Dynamic Pill Items rendered by JS -->
+                </div>
+            </div>
+
+            <!-- Syllables Card Display -->
+            <div class="bg-amber-50/80 rounded-3xl p-6 sm:p-8 border-2 border-dashed border-amber-300 flex flex-col items-center justify-center gap-6 relative overflow-hidden">
+                
+                <!-- Visual Cue Color Helper Bar -->
+                <div class="flex items-center gap-4 text-xs font-bold">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full bg-blue-600 inline-block"></span>
+                        <span class="text-blue-800">Suku Kata 1</span>
+                    </div>
+                    <span class="text-slate-300">•</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full bg-orange-600 inline-block"></span>
+                        <span class="text-orange-800">Suku Kata 2</span>
+                    </div>
+                </div>
+
+                <!-- MAIN INTERACTIVE SYLLABLE BUTTONS -->
+                <div class="flex items-center justify-center gap-2 sm:gap-4 w-full py-2">
+                    <!-- Syllable 1 Box -->
+                    <button id="btn-syl-1" onclick="playSyllable(1)" class="lowercase-text flex-1 max-w-[160px] h-24 sm:h-28 rounded-2xl bg-blue-600 text-white border-b-8 border-blue-800 text-4xl sm:text-6xl font-bold flex items-center justify-center shadow-lg active:translate-y-1 transition-all duration-150 relative group">
+                        <span id="text-syl-1">ru</span>
+                        <span class="absolute top-2 right-2 text-xs bg-white/20 px-1.5 py-0.5 rounded-md opacity-80 group-hover:opacity-100">🔊</span>
+                    </button>
+
+                    <!-- Hyphen Separator -->
+                    <span class="text-3xl sm:text-5xl font-extrabold text-amber-400">-</span>
+
+                    <!-- Syllable 2 Box -->
+                    <button id="btn-syl-2" onclick="playSyllable(2)" class="lowercase-text flex-1 max-w-[160px] h-24 sm:h-28 rounded-2xl bg-orange-600 text-white border-b-8 border-orange-800 text-4xl sm:text-6xl font-bold flex items-center justify-center shadow-lg active:translate-y-1 transition-all duration-150 relative group">
+                        <span id="text-syl-2">mah</span>
+                        <span class="absolute top-2 right-2 text-xs bg-white/20 px-1.5 py-0.5 rounded-md opacity-80 group-hover:opacity-100">🔊</span>
+                    </button>
+                </div>
+
+                <!-- Coda Explanation Callout -->
+                <div id="coda-callout" class="bg-white/90 border border-amber-200 rounded-xl px-4 py-2 text-center text-xs sm:text-sm text-slate-700 shadow-sm flex items-center gap-2 flex-wrap justify-center">
+                    <span>💡 Focus Konsonan Mati:</span>
+                    <span id="coda-highlight" class="font-bold text-red-600 text-base bg-red-50 px-2 py-0.5 rounded-lg border border-red-200">-h</span>
+                </div>
+            </div>
+
+            <!-- ACTION BUTTONS BAR -->
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+                <button onclick="playFullWord()" class="w-full sm:flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 text-white border-b-4 border-green-700 font-bold text-lg shadow-lg hover:brightness-105 active:translate-y-0.5 flex items-center justify-center gap-2 transition">
+                    <span class="text-2xl">🔊</span>
+                    <span>baca utuh</span>
+                </button>
+
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button onclick="prevWord()" class="flex-1 sm:flex-none p-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 border-b-4 border-slate-300 font-bold text-xl active:translate-y-0.5">
+                        ⬅️
+                    </button>
+                    <button onclick="nextWord()" class="flex-1 sm:flex-none p-4 rounded-2xl bg-amber-400 hover:bg-amber-500 text-amber-950 border-b-4 border-amber-600 font-bold text-lg active:translate-y-0.5 flex items-center justify-center gap-1">
+                        <span>lanjut</span>
+                        <span>➡</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Practice Hold Coda Interactive Bar -->
+            <div class="bg-indigo-50 rounded-2xl p-4 border border-indigo-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="text-center sm:text-left">
+                    <h4 class="font-bold text-indigo-900 text-sm">Latihan Tahan Bunyi Huruf Mati</h4>
+                    <p class="text-xs text-indigo-600">Tekan & tahan tombol untuk merasakan dengung/tahanan bunyi</p>
+                </div>
+                <button id="btn-hold-mini" onmousedown="startHoldSound()" onmouseup="stopHoldSound()" onmouseleave="stopHoldSound()" ontouchstart="startHoldSound(event)" ontouchend="stopHoldSound(event)" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-indigo-600 text-white border-b-4 border-indigo-800 font-bold text-sm shadow active:bg-indigo-700 flex items-center justify-center gap-2 transition select-none">
+                    <span>✋ Tekan Tahan [</span>
+                    <span id="mini-coda-text" class="text-yellow-300 font-black">h</span>
+                    <span>]</span>
+                </button>
+            </div>
+        </section>
+
+        <section id="view-quiz" class="hidden bg-white rounded-3xl p-5 sm:p-6 shadow-xl border-4 border-purple-200 flex flex-col gap-5">
+            <div class="flex items-center justify-between border-b border-purple-100 pb-3">
+                <div>
+                    <h2 class="text-lg font-bold text-purple-900 flex items-center gap-2">
+                        <span>🎯</span> Kuis Tebak Suara
+                    </h2>
+                    <p class="text-xs text-purple-600">Dengarkan audio lalu pilih kata yang tepat!</p>
+                </div>
+                <div class="bg-purple-100 text-purple-800 font-bold text-xs px-3 py-1 rounded-full">
+                    Skor Kuis: <span id="quiz-score" class="text-sm font-extrabold text-purple-900">0</span>
+                </div>
+            </div>
+
+            <!-- Speaker Audio Play Button -->
+            <div class="bg-purple-50 rounded-3xl p-6 border-2 border-dashed border-purple-300 flex flex-col items-center justify-center gap-3">
+                <button onclick="playQuizTargetAudio()" class="w-24 h-24 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white border-b-8 border-purple-900 text-4xl flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition">
+                    🔊
+                </button>
+                <span class="text-xs font-bold text-purple-700 bg-purple-200/80 px-3 py-1 rounded-full">
+                    Klik untuk dengarkan suara kata!
+                </span>
+            </div>
+
+            <!-- 4 Choice Cards (Strictly Lowercase) -->
+            <div id="quiz-options-grid" class="grid grid-cols-2 gap-3">
+                <!-- Javascript will populate 4 choices -->
+            </div>
+        </section>
+
+        <section id="view-hold" class="hidden bg-white rounded-3xl p-5 sm:p-6 shadow-xl border-4 border-emerald-200 flex flex-col gap-5">
+            <div class="border-b border-emerald-100 pb-3">
+                <h2 class="text-lg font-bold text-emerald-900 flex items-center gap-2">
+                    <span>⏱️</span> Latihan Tahan Bunyi Konsonan Mati
+                </h2>
+                <p class="text-xs text-emerald-600">Latih lidah & bibirmu untuk menahan pengucapan huruf mati di akhir atau tengah kata.</p>
+            </div>
+
+            <!-- Selector Coda Letters -->
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1" id="coda-practice-selector">
+                <!-- Dynamic Coda Pills: -h, -m, -s, -t, -r, -p, -k, -n, -ng -->
+            </div>
+
+            <!-- Big Interactive Sound Hold Button -->
+            <div class="bg-emerald-50 rounded-3xl p-8 border-2 border-emerald-200 flex flex-col items-center justify-center gap-5 text-center">
+                <div class="text-xs font-bold text-emerald-700 uppercase tracking-widest">Huruf Konsonan Mati Target:</div>
+                <div id="big-coda-display" class="text-6xl font-black text-emerald-600 bg-white px-8 py-4 rounded-2xl shadow border-2 border-emerald-300">
+                    -h
+                </div>
+
+                <p id="coda-instruction" class="text-xs sm:text-sm text-emerald-800 font-semibold max-w-xs">
+                    Hembuskan nafas halus di akhir (seperti ru-mah)
+                </p>
+
+                <!-- Hold Touch Area Button -->
+                <button id="btn-big-hold" onmousedown="startHoldSound()" onmouseup="stopHoldSound()" onmouseleave="stopHoldSound()" ontouchstart="startHoldSound(event)" ontouchend="stopHoldSound(event)" class="w-full max-w-xs py-5 rounded-2xl bg-emerald-500 text-white border-b-8 border-emerald-700 text-xl font-bold shadow-xl active:translate-y-1 transition select-none flex flex-col items-center justify-center gap-1">
+                    <span class="text-2xl">✋ TEKAN & TAHAN</span>
+                    <span class="text-xs opacity-90 font-normal">Rasakan dengungnya!</span>
+                </button>
+
+                <!-- Sound Duration Progress Gauge -->
+                <div class="w-full max-w-xs bg-slate-200 h-4 rounded-full overflow-hidden border border-slate-300">
+                    <div id="hold-progress-bar" class="bg-emerald-500 h-full w-0 transition-all duration-75"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+
+        // PORTAL 1: KV - KVK Words (Trailing Consonants)
+        const WORDS_KV_KVK = [
+            // -h
+            { s1: 'ru', s2: 'mah', coda: 'h', type: 'kv-kvk' },
+            { s1: 'ga', s2: 'jah', coda: 'h', type: 'kv-kvk' },
+            { s1: 'le', s2: 'bah', coda: 'h', type: 'kv-kvk' },
+            { s1: 'pu', s2: 'tih', coda: 'h', type: 'kv-kvk' },
+            { s1: 'me', s2: 'rah', coda: 'h', type: 'kv-kvk' },
+            { s1: 'ta', s2: 'nah', coda: 'h', type: 'kv-kvk' },
+            { s1: 'ba', s2: 'sah', coda: 'h', type: 'kv-kvk' },
+            // -m
+            { s1: 'ja', s2: 'rum', coda: 'm', type: 'kv-kvk' },
+            { s1: 'mi', s2: 'num', coda: 'm', type: 'kv-kvk' },
+            { s1: 'hi', s2: 'tam', coda: 'm', type: 'kv-kvk' },
+            { s1: 'ba', s2: 'lam', coda: 'm', type: 'kv-kvk' },
+            { s1: 'ko', s2: 'lam', coda: 'm', type: 'kv-kvk' },
+            { s1: 'ta', s2: 'nam', coda: 'm', type: 'kv-kvk' },
+            // -s
+            { s1: 'be', s2: 'ras', coda: 's', type: 'kv-kvk' },
+            { s1: 'pe', s2: 'das', coda: 's', type: 'kv-kvk' },
+            { s1: 'na', s2: 'nas', coda: 's', type: 'kv-kvk' },
+            { s1: 'ki', s2: 'pas', coda: 's', type: 'kv-kvk' },
+            { s1: 'ma', s2: 'nis', coda: 's', type: 'kv-kvk' },
+            { s1: 'ti', s2: 'kus', coda: 's', type: 'kv-kvk' },
+            { s1: 'ge', s2: 'las', coda: 's', type: 'kv-kvk' },
+            // -t
+            { s1: 'se', s2: 'mut', coda: 't', type: 'kv-kvk' },
+            { s1: 'mu', s2: 'lut', coda: 't', type: 'kv-kvk' },
+            { s1: 'gi', s2: 'git', coda: 't', type: 'kv-kvk' },
+            { s1: 'ku', s2: 'lit', coda: 't', type: 'kv-kvk' },
+            { s1: 'sa', s2: 'kit', coda: 't', type: 'kv-kvk' },
+            { s1: 'lu', s2: 'tut', coda: 't', type: 'kv-kvk' },
+            { s1: 'ka', s2: 'ret', coda: 't', type: 'kv-kvk' },
+            // -r
+            { s1: 'ka', s2: 'sur', coda: 'r', type: 'kv-kvk' },
+            { s1: 'pa', s2: 'sar', coda: 'r', type: 'kv-kvk' },
+            { s1: 'sa', s2: 'yur', coda: 'r', type: 'kv-kvk' },
+            { s1: 'te', s2: 'lur', coda: 'r', type: 'kv-kvk' },
+            { s1: 'bi', s2: 'bir', coda: 'r', type: 'kv-kvk' },
+            { s1: 'le', s2: 'her', coda: 'r', type: 'kv-kvk' },
+            { s1: 'ti', s2: 'dur', coda: 'r', type: 'kv-kvk' },
+            // -p
+            { s1: 'a', s2: 'sap', coda: 'p', type: 'kv-kvk' },
+            { s1: 'ge', s2: 'lap', coda: 'p', type: 'kv-kvk' },
+            { s1: 'hi', s2: 'dup', coda: 'p', type: 'kv-kvk' },
+            { s1: 'sa', s2: 'yap', coda: 'p', type: 'kv-kvk' },
+            { s1: 'ci', s2: 'cip', coda: 'p', type: 'kv-kvk' },
+            // -k
+            { s1: 'ci', s2: 'cak', coda: 'k', type: 'kv-kvk' },
+            { s1: 'ka', s2: 'tak', coda: 'k', type: 'kv-kvk' },
+            { s1: 'be', s2: 'bek', coda: 'k', type: 'kv-kvk' },
+            { s1: 'ma', s2: 'sak', coda: 'k', type: 'kv-kvk' },
+            { s1: 'bi', s2: 'jak', coda: 'k', type: 'kv-kvk' },
+            { s1: 'ne', s2: 'nek', coda: 'k', type: 'kv-kvk' },
+            // -n
+            { s1: 'hu', s2: 'jan', coda: 'n', type: 'kv-kvk' },
+            { s1: 'po', s2: 'hon', coda: 'n', type: 'kv-kvk' },
+            { s1: 'de', s2: 'pan', coda: 'n', type: 'kv-kvk' },
+            { s1: 'pa', s2: 'pan', coda: 'n', type: 'kv-kvk' },
+            { s1: 'ta', s2: 'man', coda: 'n', type: 'kv-kvk' },
+            { s1: 'ma', s2: 'kan', coda: 'n', type: 'kv-kvk' },
+            { s1: 'te', s2: 'man', coda: 'n', type: 'kv-kvk' },
+            { s1: 'sa', s2: 'bun', coda: 'n', type: 'kv-kvk' },
+            // -ng
+            { s1: 'pi', s2: 'sang', coda: 'ng', type: 'kv-kvk' },
+            { s1: 'pu', s2: 'lang', coda: 'ng', type: 'kv-kvk' },
+            { s1: 'pi', s2: 'ring', coda: 'ng', type: 'kv-kvk' },
+            { s1: 'bu', s2: 'rung', coda: 'ng', type: 'kv-kvk' },
+            { s1: 'to', s2: 'long', coda: 'ng', type: 'kv-kvk' },
+            { s1: 'pa', s2: 'sang', coda: 'ng', type: 'kv-kvk' }
+        ];
+
+        // PORTAL 2: KVK - KV Words (Middle Consonants)
+        const WORDS_KVK_KV = [
+            // -m
+            { s1: 'lam', s2: 'pu', coda: 'm', type: 'kvk-kv' },
+            { s1: 'dom', s2: 'ba', coda: 'm', type: 'kvk-kv' },
+            { s1: 'mim', s2: 'pi', coda: 'm', type: 'kvk-kv' },
+            { s1: 'tem', s2: 'pe', coda: 'm', type: 'kvk-kv' },
+            { s1: 'jam', s2: 'bu', coda: 'm', type: 'kvk-kv' },
+            { s1: 'kom', s2: 'pa', coda: 'm', type: 'kvk-kv' },
+            { s1: 'tim', s2: 'ba', coda: 'm', type: 'kvk-kv' },
+            // -n
+            { s1: 'pin', s2: 'tu', coda: 'n', type: 'kvk-kv' },
+            { s1: 'man', s2: 'di', coda: 'n', type: 'kvk-kv' },
+            { s1: 'san', s2: 'dal', coda: 'n', type: 'kvk-kv' },
+            { s1: 'kan', s2: 'cil', coda: 'n', type: 'kvk-kv' },
+            { s1: 'cin', s2: 'ta', coda: 'n', type: 'kvk-kv' },
+            { s1: 'ban', s2: 'tu', coda: 'n', type: 'kvk-kv' },
+            { s1: 'lan', s2: 'tai', coda: 'n', type: 'kvk-kv' },
+            // -ng
+            { s1: 'bang', s2: 'ku', coda: 'ng', type: 'kvk-kv' },
+            { s1: 'cang', s2: 'kir', coda: 'ng', type: 'kvk-kv' },
+            { s1: 'cang', s2: 'kul', coda: 'ng', type: 'kvk-kv' },
+            { s1: 'tang', s2: 'ga', coda: 'ng', type: 'kvk-kv' },
+            { s1: 'mang', s2: 'ko', coda: 'ng', type: 'kvk-kv' },
+            { s1: 'sing', s2: 'ga', coda: 'ng', type: 'kvk-kv' },
+            // -r
+            { s1: 'kar', s2: 'tu', coda: 'r', type: 'kvk-kv' },
+            { s1: 'kur', s2: 'si', coda: 'r', type: 'kvk-kv' },
+            { s1: 'kur', s2: 'ma', coda: 'r', type: 'kvk-kv' },
+            { s1: 'gar', s2: 'pu', coda: 'r', type: 'kvk-kv' },
+            { s1: 'kar', s2: 'pet', coda: 'r', type: 'kvk-kv' },
+            { s1: 'ter', s2: 'bang', coda: 'r', type: 'kvk-kv' },
+            // -s
+            { s1: 'pis', s2: 'tol', coda: 's', type: 'kvk-kv' },
+            { s1: 'bis', s2: 'kit', coda: 's', type: 'kvk-kv' },
+            { s1: 'mas', s2: 'jid', coda: 's', type: 'kvk-kv' },
+            { s1: 'tas', s2: 'ka', coda: 's', type: 'kvk-kv' },
+            // -k
+            { s1: 'cok', s2: 'lat', coda: 'k', type: 'kvk-kv' },
+            { s1: 'dok', s2: 'ter', coda: 'k', type: 'kvk-kv' },
+            { s1: 'tak', s2: 'si', coda: 'k', type: 'kvk-kv' },
+            { s1: 'buk', s2: 'ti', coda: 'k', type: 'kvk-kv' },
+            { s1: 'tuk', s2: 'ang', coda: 'k', type: 'kvk-kv' },
+            { s1: 'pik', s2: 'nik', coda: 'k', type: 'kvk-kv' }
+        ];
+
+        // PORTAL 3: V - KVK Words (Front Vowels: a, i, u, e, o)
+        const WORDS_V_KVK = [
+            // Vokal Front A
+            { s1: 'a', s2: 'sap', vowel: 'a', coda: 'p', type: 'v-kvk' },
+            { s1: 'a', s2: 'yam', vowel: 'a', coda: 'm', type: 'v-kvk' },
+            { s1: 'a', s2: 'nak', vowel: 'a', coda: 'k', type: 'v-kvk' },
+            { s1: 'a', s2: 'tap', vowel: 'a', coda: 'p', type: 'v-kvk' },
+            { s1: 'a', s2: 'lam', vowel: 'a', coda: 'm', type: 'v-kvk' },
+            { s1: 'a', s2: 'kar', vowel: 'a', coda: 'r', type: 'v-kvk' },
+            { s1: 'a', s2: 'wan', vowel: 'a', coda: 'n', type: 'v-kvk' },
+            { s1: 'a', s2: 'da', vowel: 'a', coda: 'h', type: 'v-kvk' },
+            { s1: 'a', s2: 'sin', vowel: 'a', coda: 'n', type: 'v-kvk' },
+            { s1: 'a', s2: 'sam', vowel: 'a', coda: 'm', type: 'v-kvk' },
+            // Vokal Front I
+            { s1: 'i', s2: 'kan', vowel: 'i', coda: 'n', type: 'v-kvk' },
+            { s1: 'i', s2: 'tik', vowel: 'i', coda: 'k', type: 'v-kvk' },
+            { s1: 'i', s2: 'sap', vowel: 'i', coda: 'p', type: 'v-kvk' },
+            { s1: 'i', s2: 'kat', vowel: 'i', coda: 't', type: 'v-kvk' },
+            { s1: 'i', s2: 'ngat', vowel: 'i', coda: 't', type: 'v-kvk' },
+            { s1: 'i', s2: 'ngin', vowel: 'i', coda: 'n', type: 'v-kvk' },
+            { s1: 'i', s2: 'ris', vowel: 'i', coda: 's', type: 'v-kvk' },
+            { s1: 'i', s2: 'kut', vowel: 'i', coda: 't', type: 'v-kvk' },
+            { s1: 'i', s2: 'ram', vowel: 'i', coda: 'm', type: 'v-kvk' },
+            // Vokal Front U
+            { s1: 'u', s2: 'lar', vowel: 'u', coda: 'r', type: 'v-kvk' },
+            { s1: 'u', s2: 'dang', vowel: 'u', coda: 'ng', type: 'v-kvk' },
+            { s1: 'u', s2: 'lat', vowel: 'u', coda: 't', type: 'v-kvk' },
+            { s1: 'u', s2: 'mur', vowel: 'u', coda: 'r', type: 'v-kvk' },
+            { s1: 'u', s2: 'sap', vowel: 'u', coda: 'p', type: 'v-kvk' },
+            { s1: 'u', s2: 'jung', vowel: 'u', coda: 'ng', type: 'v-kvk' },
+            { s1: 'u', s2: 'lang', vowel: 'u', coda: 'ng', type: 'v-kvk' },
+            { s1: 'u', s2: 'tang', vowel: 'u', coda: 'ng', type: 'v-kvk' },
+            { s1: 'u', s2: 'kir', vowel: 'u', coda: 'r', type: 'v-kvk' },
+            // Vokal Front E
+            { s1: 'e', s2: 'mas', vowel: 'e', coda: 's', type: 'v-kvk' },
+            { s1: 'e', s2: 'kor', vowel: 'e', coda: 'r', type: 'v-kvk' },
+            { s1: 'e', s2: 'nam', vowel: 'e', coda: 'm', type: 'v-kvk' },
+            { s1: 'e', s2: 'lang', vowel: 'e', coda: 'ng', type: 'v-kvk' },
+            { s1: 'e', s2: 'ram', vowel: 'e', coda: 'm', type: 'v-kvk' },
+            // Vokal Front O
+            { s1: 'o', s2: 'bat', vowel: 'o', coda: 't', type: 'v-kvk' },
+            { s1: 'o', s2: 'rang', vowel: 'o', coda: 'ng', type: 'v-kvk' },
+            { s1: 'o', s2: 'bor', vowel: 'o', coda: 'r', type: 'v-kvk' },
+            { s1: 'o', s2: 'tot', vowel: 'o', coda: 't', type: 'v-kvk' },
+            { s1: 'o', s2: 'mel', vowel: 'o', coda: 'l', type: 'v-kvk' }
+        ];
+
+        const CODA_PRACTICE_LIST = [
+            { c: 'h', tip: 'Hembuskan nafas halus di akhir (seperti ru-mah, ga-jah)' },
+            { c: 'm', tip: 'Katupkan bibir rapat (seperti lam-pu, ja-rum, a-yam)' },
+            { c: 's', tip: 'Bunyikan desis halus (seperti be-ras, e-mas)' },
+            { c: 't', tip: 'Ujung lidah menempel di gigi atas (seperti se-mut, o-bat)' },
+            { c: 'r', tip: 'Getarkan lidah sedikit (seperti ka-sur, u-lar, e-kor)' },
+            { c: 'p', tip: 'Katupkan bibir tahan angin (seperti a-sap, i-sap)' },
+            { c: 'k', tip: 'Tahan di pangkal tenggorokan (seperti ci-cak, i-tik, a-nak)' },
+            { c: 'n', tip: 'Ujung lidah di langit-langit (seperti hu-jan, i-kan)' },
+            { c: 'ng', tip: 'Dengungkan di hidung (seperti pi-sang, bang-ku, u-dang)' }
+        ];
+
+        // State Management
+        let currentPortal = 'kv-kvk'; // 'kv-kvk', 'kvk-kv', 'v-kvk', 'kuis', 'tahan'
+        let currentCategory = 'semua';
+        let filteredWords = [];
+        let currentIndex = 0;
+        let stars = 0;
+        let quizScore = 0;
+        let currentQuizWord = null;
+        let isAudioMuted = false;
+        let holdTimer = null;
+        let holdProgressInterval = null;
+        let selectedCodaForPractice = 'h';
+
+        const synth = window.speechSynthesis;
+        let indonesianVoice = null;
+
+        function initVoices() {
+            if ('speechSynthesis' in window) {
+                const voices = synth.getVoices();
+                // Find Indonesian voice if available
+                indonesianVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('ID')) || null;
+            }
+        }
+
+        if ('speechSynthesis' in window) {
+            speechSynthesis.onvoiceschanged = initVoices;
+            initVoices();
+        }
+
+        /**
+         * Core Text-To-Speech Function
+         * @param {string} text - text to speak (lowercase)
+         * @param {number} rate - speed rate (default ~0.82 for clear phonetics)
+         * @param {function} onEndCallback - completion handler
+         */
+        function speak(text, rate = 0.82, onEndCallback = null) {
+            if (isAudioMuted || !('speechSynthesis' in window)) {
+                if (onEndCallback) onEndCallback();
+                return;
+            }
+
+            synth.cancel(); // Stop active speech
+
+            const utterance = new SpeechSynthesisUtterance(text.toLowerCase());
+            utterance.rate = rate; // Slower speed for clear phonetic reading
+            utterance.pitch = 1.05; // Warm child-friendly pitch
+
+            if (indonesianVoice) {
+                utterance.voice = indonesianVoice;
+            } else {
+                utterance.lang = 'id-ID';
+            }
+
+            if (onEndCallback) {
+                utterance.onend = onEndCallback;
+                utterance.onerror = onEndCallback;
+            }
+
+            synth.speak(utterance);
+        }
+
+        // Initialize App on DOM Load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadProgress();
+            switchPortal('kv-kvk');
+            renderCodaHoldPracticeSelector();
+        });
+
+        function switchPortal(portalName) {
+            currentPortal = portalName;
+
+            // Reset navigation tab styles
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.className = "nav-tab py-2.5 px-2 rounded-2xl font-bold text-xs sm:text-sm border-b-4 transition-all flex flex-col items-center justify-center gap-1 bg-slate-200 text-slate-700 border-slate-300 hover:bg-slate-300";
+            });
+
+            // Hide all view sections
+            document.getElementById('view-learning').classList.add('hidden');
+            document.getElementById('view-quiz').classList.add('hidden');
+            document.getElementById('view-hold').classList.add('hidden');
+
+            if (portalName === 'kv-kvk') {
+                document.getElementById('tab-kv-kvk').className = "nav-tab py-2.5 px-2 rounded-2xl font-bold text-xs sm:text-sm border-b-4 transition-all flex flex-col items-center justify-center gap-1 bg-blue-600 text-white border-blue-800 shadow-md";
+                document.getElementById('view-learning').classList.remove('hidden');
+                currentCategory = 'semua';
+                filterWords();
+            } else if (portalName === 'kvk-kv') {
+                document.getElementById('tab-kvk-kv').className = "nav-tab py-2.5 px-2 rounded-2xl font-bold text-xs sm:text-sm border-b-4 transition-all flex flex-col items-center justify-center gap-1 bg-orange-600 text-white border-orange-800 shadow-md";
+                document.getElementById('view-learning').classList.remove('hidden');
+                currentCategory = 'semua';
+                filterWords();
+            } else if (portalName === 'v-kvk') {
+                document.getElementById('tab-v-kvk').className = "nav-tab py-2.5 px-2 rounded-2xl font-bold text-xs sm:text-sm border-b-4 transition-all flex flex-col items-center justify-center gap-1 bg-teal-600 text-white border-teal-800 shadow-md";
+                document.getElementById('view-learning').classList.remove('hidden');
+                currentCategory = 'semua';
+                filterWords();
+            } else if (portalName === 'kuis') {
+                document.getElementById('tab-kuis').className = "nav-tab py-2.5 px-2 rounded-2xl font-bold text-xs sm:text-sm border-b-4 transition-all flex flex-col items-center justify-center gap-1 bg-purple-600 text-white border-purple-800 shadow-md";
+                document.getElementById('view-quiz').classList.remove('hidden');
+                generateQuizQuestion();
+            } else if (portalName === 'tahan') {
+                document.getElementById('tab-tahan').className = "nav-tab py-2.5 px-2 rounded-2xl font-bold text-xs sm:text-sm border-b-4 transition-all flex flex-col items-center justify-center gap-1 bg-emerald-600 text-white border-emerald-800 shadow-md";
+                document.getElementById('view-hold').classList.remove('hidden');
+            }
+        }
+
+        function filterWords() {
+            let rawList = [];
+            
+            if (currentPortal === 'kv-kvk') {
+                rawList = WORDS_KV_KVK;
+            } else if (currentPortal === 'kvk-kv') {
+                rawList = WORDS_KVK_KV;
+            } else if (currentPortal === 'v-kvk') {
+                rawList = WORDS_V_KVK;
+            }
+
+            if (currentCategory === 'semua') {
+                filteredWords = [...rawList];
+            } else {
+                if (currentPortal === 'v-kvk') {
+                    filteredWords = rawList.filter(w => w.vowel === currentCategory);
+                } else {
+                    filteredWords = rawList.filter(w => w.coda === currentCategory);
+                }
+            }
+
+            currentIndex = 0;
+            renderCategories();
+            renderCurrentWord();
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('category-pills');
+            const labelEl = document.getElementById('category-filter-label');
+            let categories = [];
+
+            if (currentPortal === 'v-kvk') {
+                labelEl.textContent = 'Pilih Vokal Depan:';
+                categories = ['semua', 'a', 'i', 'u', 'e', 'o'];
+            } else {
+                labelEl.textContent = 'Pilih Akhiran/Tengah:';
+                categories = ['semua', 'h', 'm', 's', 't', 'r', 'p', 'k', 'n', 'ng'];
+            }
+
+            container.innerHTML = categories.map(cat => {
+                let label = cat;
+                if (cat !== 'semua') {
+                    label = currentPortal === 'v-kvk' ? `vokal ${cat}` : `-${cat}`;
+                }
+                const isActive = currentCategory === cat;
+                const activeClass = isActive 
+                    ? 'bg-amber-500 text-white border-amber-700 shadow' 
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100';
+
+                return `
+                    <button onclick="selectCategory('${cat}')" class="px-3 py-1.5 rounded-xl border-2 font-bold text-xs capitalize transition-all whitespace-nowrap ${activeClass}">
+                        ${label}
+                    </button>
+                `;
+            }).join('');
+
+            document.getElementById('word-count-badge').textContent = `${filteredWords.length} kata`;
+        }
+
+        function selectCategory(cat) {
+            currentCategory = cat;
+            filterWords();
+        }
+
+        function renderCurrentWord() {
+            if (filteredWords.length === 0) return;
+            const word = filteredWords[currentIndex];
+
+            // Update Lowercase Syllable Text
+            document.getElementById('text-syl-1').textContent = word.s1.toLowerCase();
+            document.getElementById('text-syl-2').textContent = word.s2.toLowerCase();
+
+            // Update Coda / Vowel Explanation Callout
+            let codaText = '';
+            if (word.type === 'kv-kvk') {
+                codaText = `Akhiran -${word.coda}`;
+            } else if (word.type === 'kvk-kv') {
+                codaText = `Tengah -${word.coda}`;
+            } else if (word.type === 'v-kvk') {
+                codaText = `Vokal Depan [${word.vowel.toUpperCase()}] & Konsonan Mati -${word.coda}`;
+            }
+
+            document.getElementById('coda-highlight').textContent = codaText;
+            document.getElementById('mini-coda-text').textContent = word.coda.toLowerCase();
+        }
+
+        function playSyllable(num) {
+            if (filteredWords.length === 0) return;
+            const word = filteredWords[currentIndex];
+            const sylText = num === 1 ? word.s1 : word.s2;
+            const btnEl = num === 1 ? document.getElementById('btn-syl-1') : document.getElementById('btn-syl-2');
+
+            // Trigger Visual Pulse Highlight
+            btnEl.classList.add('syllable-active');
+
+            speak(sylText, 0.8, () => {
+                btnEl.classList.remove('syllable-active');
+            });
+        }
+
+        function playFullWord() {
+            if (filteredWords.length === 0) return;
+            const word = filteredWords[currentIndex];
+            const btn1 = document.getElementById('btn-syl-1');
+            const btn2 = document.getElementById('btn-syl-2');
+
+            // Sequence: Syllable 1 -> Syllable 2 -> Full Word
+            btn1.classList.add('syllable-active');
+            speak(word.s1, 0.85, () => {
+                btn1.classList.remove('syllable-active');
+                
+                setTimeout(() => {
+                    btn2.classList.add('syllable-active');
+                    speak(word.s2, 0.85, () => {
+                        btn2.classList.remove('syllable-active');
+
+                        setTimeout(() => {
+                            const fullWord = `${word.s1}${word.s2}`;
+                            speak(fullWord, 0.8, () => {
+                                addStars(1);
+                            });
+                        }, 200);
+                    });
+                }, 150);
+            });
+        }
+
+        function nextWord() {
+            if (filteredWords.length === 0) return;
+            currentIndex = (currentIndex + 1) % filteredWords.length;
+            renderCurrentWord();
+            playFullWord();
+        }
+
+        function prevWord() {
+            if (filteredWords.length === 0) return;
+            currentIndex = (currentIndex - 1 + filteredWords.length) % filteredWords.length;
+            renderCurrentWord();
+        }
+
+        function startHoldSound(e) {
+            if (e && e.cancelable) e.preventDefault();
+            
+            const btnMini = document.getElementById('btn-hold-mini');
+            const btnBig = document.getElementById('btn-big-hold');
+            const currentCoda = currentPortal === 'tahan' ? selectedCodaForPractice : (filteredWords[currentIndex]?.coda || 'h');
+
+            if (btnMini) btnMini.classList.add('holding-coda');
+            if (btnBig) btnBig.classList.add('holding-coda');
+
+            // Continuous speech repeat while holding
+            let progress = 0;
+            const bar = document.getElementById('hold-progress-bar');
+            
+            speak(currentCoda, 0.6);
+
+            holdProgressInterval = setInterval(() => {
+                progress += 10;
+                if (bar) bar.style.width = `${Math.min(progress, 100)}%`;
+                if (progress >= 100) {
+                    speak(currentCoda, 0.6);
+                    progress = 0;
+                }
+            }, 100);
+        }
+
+        function stopHoldSound(e) {
+            if (e && e.cancelable) e.preventDefault();
+            
+            const btnMini = document.getElementById('btn-hold-mini');
+            const btnBig = document.getElementById('btn-big-hold');
+            const bar = document.getElementById('hold-progress-bar');
+
+            if (btnMini) btnMini.classList.remove('holding-coda');
+            if (btnBig) btnBig.classList.remove('holding-coda');
+            if (bar) bar.style.width = '0%';
+
+            clearInterval(holdProgressInterval);
+            synth.cancel();
+        }
+
+        function renderCodaHoldPracticeSelector() {
+            const container = document.getElementById('coda-practice-selector');
+
+            container.innerHTML = CODA_PRACTICE_LIST.map(item => `
+                <button onclick="selectPracticeCoda('${item.c}')" class="px-4 py-2 rounded-2xl border-2 font-black text-sm uppercase transition ${selectedCodaForPractice === item.c ? 'bg-emerald-600 text-white border-emerald-800 shadow-md' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                    -${item.c}
+                </button>
+            `).join('');
+
+            document.getElementById('big-coda-display').textContent = `-${selectedCodaForPractice}`;
+        }
+
+        function selectPracticeCoda(codaKey) {
+            selectedCodaForPractice = codaKey;
+            const found = CODA_PRACTICE_LIST.find(item => item.c === codaKey);
+            if (found) {
+                document.getElementById('coda-instruction').textContent = found.tip;
+            }
+            renderCodaHoldPracticeSelector();
+        }
+
+        function generateQuizQuestion() {
+            // Combine all available words across 3 patterns
+            const allWords = [...WORDS_KV_KVK, ...WORDS_KVK_KV, ...WORDS_V_KVK];
+            
+            // Select 1 target word randomly
+            const target = allWords[Math.floor(Math.random() * allWords.length)];
+            currentQuizWord = target;
+
+            // Generate 3 distractors
+            const distractors = [];
+            while (distractors.length < 3) {
+                const rand = allWords[Math.floor(Math.random() * allWords.length)];
+                const fullTarget = `${target.s1}${target.s2}`;
+                const fullRand = `${rand.s1}${rand.s2}`;
+                if (fullRand !== fullTarget && !distractors.some(d => `${d.s1}${d.s2}` === fullRand)) {
+                    distractors.push(rand);
+                }
+            }
+
+            // Shuffle target + distractors
+            const options = [target, ...distractors].sort(() => Math.random() - 0.5);
+
+            // Render 4 choice buttons (strictly lowercase display)
+            const grid = document.getElementById('quiz-options-grid');
+            grid.innerHTML = options.map(opt => {
+                return `
+                    <button onclick="checkQuizAnswer('${opt.s1}${opt.s2}')" class="lowercase-text py-6 px-4 rounded-2xl bg-white border-4 border-purple-200 hover:border-purple-500 text-purple-950 font-bold text-2xl sm:text-3xl shadow-lg active:scale-95 transition flex items-center justify-center">
+                        <span class="text-blue-600">${opt.s1.toLowerCase()}</span>
+                        <span class="text-orange-600">${opt.s2.toLowerCase()}</span>
+                    </button>
+                `;
+            }).join('');
+
+            // Automatically play target audio after short delay
+            setTimeout(() => {
+                playQuizTargetAudio();
+            }, 300);
+        }
+
+        function playQuizTargetAudio() {
+            if (!currentQuizWord) return;
+            const fullWord = `${currentQuizWord.s1}${currentQuizWord.s2}`;
+            speak(fullWord, 0.8);
+        }
+
+        function checkQuizAnswer(selectedWord) {
+            if (!currentQuizWord) return;
+            const targetWord = `${currentQuizWord.s1}${currentQuizWord.s2}`;
+
+            if (selectedWord === targetWord) {
+                // Correct Answer
+                quizScore += 10;
+                addStars(2);
+                document.getElementById('quiz-score').textContent = quizScore;
+
+                // Confetti Celebration
+                confetti({
+                    particleCount: 65,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+
+                // Voice Praise Audio
+                const praises = ["Hebat!", "Pintar sekali!", "Wah, makin lancar!", "Luar biasa!"];
+                const randomPraise = praises[Math.floor(Math.random() * praises.length)];
+                speak(randomPraise, 0.9, () => {
+                    setTimeout(() => {
+                        generateQuizQuestion();
+                    }, 500);
+                });
+            } else {
+                // Incorrect Answer Feedback
+                speak("Coba lagi ya", 0.9);
+            }
+        }
+
+        function addStars(count) {
+            stars += count;
+            document.getElementById('star-count').textContent = stars;
+            saveProgress();
+        }
+
+        function saveProgress() {
+            try {
+                localStorage.setItem('lancar_baca_stars', stars);
+            } catch(e){}
+        }
+
+        function loadProgress() {
+            try {
+                const saved = localStorage.getItem('lancar_baca_stars');
+                if (saved) {
+                    stars = parseInt(saved, 10) || 0;
+                    document.getElementById('star-count').textContent = stars;
+                }
+            } catch(e){}
+        }
+
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            document.getElementById('btn-sound-toggle').textContent = isAudioMuted ? '🔇' : '🔊';
+            if (isAudioMuted) synth.cancel();
+        }
+    </script>
+</body>
+</html>
